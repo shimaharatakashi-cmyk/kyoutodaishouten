@@ -551,7 +551,7 @@ const HORSE_DATA = [
     "pos": "先行",
     "descBlood": "父エピファネイア×母父ディープインパクト。血統は補助材料として扱い、今回は京都外2400mの実績・位置取り・休養間隔を優先して評価。",
     "descRace": "想定3番人気（仮6.2倍）。JRA傾向照合：○ 6番人気以内／○ 中21週（14週以上）／○ 前走4角6番手（6番手以内）。京都芝2400m 1-1-0-0／全芝2400m 2-2-0-1。",
-    "descExtra": "年明けの万葉Sを勝ち、阪神大賞典2着、天皇賞（春）も0.2秒差4着。春は長距離路線で一戦ごとに内容を上げており、先行して長く脚を使えるのがこの馬の持ち味。55kgで運べる今回は、開幕週の馬場も味方にしやすい。",
+    "descExtra": "年明けの万葉Sを勝ち、阪神大賞典2着、天皇賞（春）も0.2秒差4着と春の内容は充実。先行して長く脚を使える点と55kgは魅力だが、今回は3000m超中心だった春から2400mの高速戦へ切り替わる。条件は合う一方、絶対視するほど抜けた存在ではなく、流れへの対応まで含めて評価したい。",
     "races": [
       {
         "title": "05/03 天皇賞（春 国際",
@@ -1100,11 +1100,11 @@ const HORSE_DATA = [
 // ▼ 強制キャッシュクリアのためにキーの末尾を _v3 に変更 ▼
 const STORE_NUMS = 'keibaNums_KyotoDaishoten_2026_v1';
 const STORE_DATA = 'keibaData_KyotoDaishoten_2026_v3';
-const STORE_RADAR = 'keibaRadar_KyotoDaishoten_2026_v1';
+const STORE_RADAR = 'keibaRadar_KyotoDaishoten_2026_v2';
 const STORE_MARK = 'keibaMark_KyotoDaishoten_2026_v1';
 const STORE_SORT = 'keibaSort_KyotoDaishoten_2026_v1';
 const STORE_RADAR_LABELS = 'keibaRadarLabels_KyotoDaishoten_2026_v1';
-const STORE_WINRATES = 'keibaWinRates_KyotoDaishoten_2026_v1';
+const STORE_WINRATES = 'keibaWinRates_KyotoDaishoten_2026_v2';
 const STORE_COND_TRACK = 'keibaCondTrack_KyotoDaishoten_2026_v1';
 const STORE_COND_PACE = 'keibaCondPace_KyotoDaishoten_2026_v1';
 const STORE_COND_BIAS = 'keibaCondBias_KyotoDaishoten_2026_v1';
@@ -1128,91 +1128,36 @@ let currentRadarLabels = JSON.parse(localStorage.getItem(STORE_RADAR_LABELS)) ||
 
 const factorOptionsList = ["能力", "展開", "距離適性", "ローテ", "血統", "デキ", "騎手", "馬場/舞台", "枠順", "調教", "実績", "ペース", "持ち時計", "近走"];
 
+// 5項目×5点＝25点満点。23点以上は例外的な高評価とし、満点は原則使わない。
 const initialScores = {
-  "h1": [
-    5,
-    4,
-    5,
-    2,
-    5
-  ],
-  "h2": [
-    5,
-    3,
-    5,
-    5,
-    5
-  ],
-  "h3": [
-    5,
-    5,
-    5,
-    5,
-    5
-  ],
-  "h4": [
-    5,
-    3,
-    4,
-    5,
-    5
-  ],
-  "h5": [
-    4,
-    3,
-    3,
-    5,
-    5
-  ],
-  "h6": [
-    4,
-    3,
-    4,
-    3,
-    5
-  ],
-  "h7": [
-    4,
-    2,
-    3,
-    3,
-    4
-  ],
-  "h8": [
-    3,
-    3,
-    4,
-    5,
-    4
-  ],
-  "h9": [
-    3,
-    5,
-    5,
-    2,
-    5
-  ],
-  "h10": [
-    3,
-    5,
-    4,
-    5,
-    5
-  ],
-  "h11": [
-    3,
-    5,
-    5,
-    5,
-    3
-  ],
-  "h12": [
-    3,
-    4,
-    5,
-    5,
-    4
-  ]
+  "h1":  [5, 4, 5, 3, 5], // ダノンシーマ 22/25
+  "h2":  [5, 3, 5, 4, 4], // ディープモンスター 21/25
+  "h3":  [4, 4, 5, 4, 4], // アクアヴァーナル 21/25
+  "h4":  [5, 3, 4, 5, 4], // ヘデントール 21/25
+  "h5":  [4, 3, 3, 5, 4], // ミクニインスパイア 19/25
+  "h6":  [4, 3, 4, 3, 5], // ウエストナウ 19/25
+  "h7":  [4, 2, 3, 4, 4], // ヴェルテンベルク 17/25
+  "h8":  [4, 3, 4, 4, 4], // ショウナンラプンタ 19/25
+  "h9":  [3, 4, 4, 3, 5], // サヴォーナ 19/25
+  "h10": [4, 4, 4, 4, 4], // キングスコール 20/25
+  "h11": [3, 4, 4, 4, 3], // マイネルエンペラー 18/25
+  "h12": [3, 4, 4, 4, 3]  // ファミリータイム 18/25
+};
+
+// 枠順前の初期推定勝率。点数だけで機械的に決めず、仮オッズ・実績・今回条件を合わせて100%に調整。
+const initialWinRates = {
+  "h1": 26,
+  "h2": 15,
+  "h3": 14,
+  "h4": 12,
+  "h5": 6,
+  "h6": 5,
+  "h7": 3,
+  "h8": 5,
+  "h9": 4,
+  "h10": 4,
+  "h11": 3,
+  "h12": 3
 };
 
 const savedRadar = localStorage.getItem(STORE_RADAR);
@@ -1266,13 +1211,20 @@ function getSortedHorses() {
 
 function calcWinRatesBase() {
     let ratesObj = {};
-    const raws = HORSE_DATA.map(h => { const base = 80 / h.odds; const factor = appState[h.key].reduce((a, b) => a + b, 0) / 25; return { key: h.key, raw: base * factor }; });
+    // 単勝オッズをそのまま勝率化すると上位人気へ寄りすぎるため、0.75乗で市場差を少し圧縮。
+    // その上で5項目の総合点を掛け合わせ、評価点と勝率の乖離を抑える。
+    const raws = HORSE_DATA.map(h => {
+        const market = Math.pow(1 / Math.max(h.odds, 1.01), 0.75);
+        const scoreFactor = appState[h.key].reduce((a, b) => a + b, 0) / 25;
+        return { key: h.key, raw: market * scoreFactor };
+    });
     const sum = raws.reduce((a, b) => a + b.raw, 0);
     let totalRounded = 0;
     let mapped = raws.map(r => { const exact = sum === 0 ? 0 : (r.raw / sum) * 100; const rounded = Math.floor(exact); totalRounded += rounded; return { key: r.key, rounded: rounded, remainder: exact - rounded }; });
     mapped.sort((a, b) => b.remainder - a.remainder);
     for (let i = 0; i < (100 - totalRounded); i++) { mapped[i % mapped.length].rounded += 1; }
-    mapped.forEach(r => ratesObj[r.key] = r.rounded); return ratesObj;
+    mapped.forEach(r => ratesObj[r.key] = r.rounded);
+    return ratesObj;
 }
 
 function getMarkOptions(selected) {
@@ -1627,7 +1579,7 @@ function initApp() {
     const savedMark = localStorage.getItem(STORE_MARK); if (savedMark) markState = JSON.parse(savedMark);
     const savedOdds = localStorage.getItem(STORE_ODDS);
     if (savedOdds) { const parsedOdds = JSON.parse(savedOdds); HORSE_DATA.forEach(h => { if (parsedOdds[h.key]) { h.odds = parsedOdds[h.key].odds; h.pop = parsedOdds[h.key].pop; } }); }
-    if (Object.keys(currentWinRates).length === 0) currentWinRates = calcWinRatesBase();
+    if (Object.keys(currentWinRates).length === 0) currentWinRates = { ...initialWinRates };
 
     document.getElementById('sort-select').value = currentSort;
     document.getElementById('sort-select').addEventListener('change', (e) => { currentSort = e.target.value; renderUI(); renderWinRateGraph(); triggerSave(); });
